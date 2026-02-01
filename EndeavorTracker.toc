@@ -1,7 +1,8 @@
 ## Interface: 120000
 ## Title: Endeavor Tracker
-## Author: Your Name
-## Version: 1.0.0
-## Notes: Tracks endeavor progress.
+## Notes: Helps track neighborhood endeavors.
+## Version: 1.4
 
 EndeavorTracker.lua
+Sort.lua
+UI.lua

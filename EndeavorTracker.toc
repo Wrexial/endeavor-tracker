@@ -1,0 +1,7 @@
+## Interface: 120000
+## Title: Endeavor Tracker
+## Author: Your Name
+## Version: 1.0.0
+## Notes: Tracks endeavor progress.
+
+EndeavorTracker.lua

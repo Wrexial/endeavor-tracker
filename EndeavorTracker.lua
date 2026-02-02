@@ -101,15 +101,49 @@ function addon.UpdateDisplay()
                         box.contribution:SetPoint("TOPRIGHT", box.requirements, "BOTTOMRIGHT", 0, -5)
                         box.contribution:SetJustifyH("RIGHT")
 
+                        box.trackedTexture = box:CreateTexture(nil, "OVERLAY")
+                        box.trackedTexture:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
+                        box.trackedTexture:SetSize(24, 24)
+                        box.trackedTexture:SetPoint("RIGHT", -5, 0)
+                        box.trackedTexture:Hide()
+
+                        box:EnableMouse(true)
+
+                        box:SetScript("OnEnter", function(self)
+                            self:SetBackdropColor(0.25, 0.25, 0.25, 0.8)
+                        end)
+
+                        box:SetScript("OnLeave", function(self)
+                            self:SetBackdropColor(0.1, 0.1, 0.1, 0.8)
+                        end)
+
+                        box:SetScript("OnMouseUp", function(self, button)
+                            if button == "RightButton" and self.taskID and self.taskID > 0 then
+                                if self.isTracked then
+                                    pcall(C_NeighborhoodInitiative.RemoveTrackedInitiativeTask, self.taskID)
+                                else
+                                    pcall(C_NeighborhoodInitiative.AddTrackedInitiativeTask, self.taskID)
+                                end
+                            end
+                        end)
+
                         taskBoxes[i] = box
                     end
 
                     -- Populate data
+                    box.taskID = task.ID
+                    box.isTracked = task.tracked
                     local taskName = task.taskName
                     if task.timesCompleted and task.timesCompleted > 0 then
                         taskName = taskName .. " |cff888888(Completed x" .. task.timesCompleted .. ")|r"
                     end
                     box.taskName:SetText(taskName)
+
+                    if box.isTracked then
+                        box.trackedTexture:Show()
+                    else
+                        box.trackedTexture:Hide()
+                    end
                     
                     local reqText = {}
                     if task.requirementsList then
@@ -199,6 +233,8 @@ mainEventFrame:SetScript("OnEvent", function(self, event, ...)
         -- Create a separate event frame for updates
         local updateEventFrame = CreateFrame("Frame")
         updateEventFrame:RegisterEvent("NEIGHBORHOOD_INITIATIVE_UPDATED")
+        updateEventFrame:RegisterEvent("INITIATIVE_TASKS_TRACKED_UPDATED")
+        updateEventFrame:RegisterEvent("INITIATIVE_TASKS_TRACKED_LIST_CHANGED")
         updateEventFrame:SetScript("OnEvent", function(...)
             addon.UpdateDisplay()
         end)

@@ -2,6 +2,13 @@
 ## Title: Endeavor Tracker
 ## Notes: Helps track neighborhood endeavors.
 ## Version: 1.4
+## OptionalDeps: LibDBIcon-1.0
+## SavedVariables: EndeavorTrackerDB
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 
 EndeavorTracker.lua
 Sort.lua

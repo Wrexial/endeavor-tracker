@@ -167,7 +167,34 @@ mainEventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_ENTERING_WORLD" then
         self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
+        EndeavorTrackerDB = EndeavorTrackerDB or {}
+        EndeavorTrackerDB.minimap = EndeavorTrackerDB.minimap or {}
+
         addon.UI.CreateFrames() -- Create all UI elements
+        
+        local ldb = LibStub:GetLibrary("LibDataBroker-1.1", true)
+        if ldb then
+            local dataobj = ldb:NewDataObject("EndeavorTracker", {
+                type = "launcher",
+                icon = "Interface\\AddOns\\EndeavorTracker\\Media\\minimap-icon.tga",
+                label = "Endeavor Tracker",
+                OnClick = function(_, button)
+                    if button == "LeftButton" then
+                        if addon.UI.frame:IsShown() then addon.UI.frame:Hide() else addon.UI.frame:Show() end
+                    end
+                end,
+                OnTooltipShow = function(tooltip)
+                    if not tooltip or not tooltip.AddLine then return end
+                    tooltip:AddLine("Endeavor Tracker")
+                    tooltip:AddLine("|cffeda55fClick|r to toggle the main window.")
+                end
+            })
+
+            local icon = LibStub("LibDBIcon-1.0", true)
+            if icon then
+                icon:Register("EndeavorTracker", dataobj, EndeavorTrackerDB.minimap)
+            end
+        end
 
         -- Create a separate event frame for updates
         local updateEventFrame = CreateFrame("Frame")

@@ -75,7 +75,7 @@ function addon.UI.CreateFrames()
         addon.Sort.SetSort(self.value)
     end
     local function InitializeSortDropdown()
-        for _, sortKey in ipairs({"Default", "Status", "Contribution", "Name"}) do
+        for _, sortKey in ipairs({"Default", "Status", "Contribution", "Name", "Coupons"}) do
             local info = UIDropDownMenu_CreateInfo()
             info.text = sortKey
             info.value = sortKey

@@ -39,6 +39,29 @@ addon.Sort.sortFunctions = {
             return a.sortOrder < b.sortOrder
         end
     end,
+    ["Coupons"] = function(a, b)
+        if a.completed and not b.completed then return false end
+        if not a.completed and b.completed then return true end
+
+        local function getReward(task)
+            if task.rewardQuestID and task.rewardQuestID > 0 then
+                local currencies = C_QuestLog.GetQuestRewardCurrencies(task.rewardQuestID)
+                if currencies and #currencies > 0 and currencies[1] then
+                    return currencies[1].totalRewardAmount or 0
+                end
+            end
+            return 0
+        end
+
+        local rewardA = getReward(a)
+        local rewardB = getReward(b)
+
+        if rewardA ~= rewardB then
+            return rewardA > rewardB
+        else
+            return a.sortOrder < b.sortOrder
+        end
+    end,
 }
 
 function addon.Sort.SetSort(sortKey)

@@ -81,8 +81,12 @@ function addon.UpdateDisplay()
                         })
                         box:SetBackdropColor(0.1, 0.1, 0.1, 0.8)
 
+                        box.trackedPip = box:CreateTexture(nil, "ARTWORK")
+                        box.trackedPip:SetSize(24, 24)
+                        box.trackedPip:SetPoint("TOPLEFT", 10, -10)
+
                         box.taskName = box:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-                        box.taskName:SetPoint("TOPLEFT", 5, -5)
+                        box.taskName:SetPoint("TOPLEFT", box.trackedPip, "TOPRIGHT", 5, 0)
                         box.taskName:SetJustifyH("LEFT")
                         box.taskName:SetNonSpaceWrap(true)
                         box.taskName:SetWidth(box:GetWidth() - 10)
@@ -95,17 +99,22 @@ function addon.UpdateDisplay()
 
                         box.status = box:CreateFontString(nil, "ARTWORK", "GameFontNormal")
                         box.status:SetPoint("TOPLEFT", box.requirements, "BOTTOMLEFT", 0, -5)
+                        box.status:SetWidth(box:GetWidth() - 70)
                         box.status:SetJustifyH("LEFT")
                         
-                        box.contribution = box:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-                        box.contribution:SetPoint("TOPRIGHT", box.requirements, "BOTTOMRIGHT", 0, -5)
-                        box.contribution:SetJustifyH("RIGHT")
+                        box.contributionBanner = box:CreateTexture(nil, "ARTWORK")
+                        box.contributionBanner:SetAtlas("housing-dashboard-tasks-listitem-flag")
+                        box.contributionBanner:SetSize(64, 32)
+                        box.contributionBanner:SetPoint("RIGHT", box, "RIGHT", 0, 0)
 
-                        box.trackedTexture = box:CreateTexture(nil, "OVERLAY")
-                        box.trackedTexture:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
-                        box.trackedTexture:SetSize(24, 24)
-                        box.trackedTexture:SetPoint("RIGHT", -5, 0)
-                        box.trackedTexture:Hide()
+                        box.contribution = box:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+                        box.contribution:SetPoint("CENTER", box.contributionBanner, "CENTER", 0, 0)
+                        box.contribution:SetJustifyH("CENTER")
+                        box.contribution:SetTextColor(1, 1, 0) -- Yellow
+
+                        box.rewardIcon = box:CreateTexture(nil, "ARTWORK")
+                        box.rewardIcon:SetSize(18, 18)
+                        box.rewardText = box:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 
                         box:EnableMouse(true)
 
@@ -118,7 +127,7 @@ function addon.UpdateDisplay()
                         end)
 
                         box:SetScript("OnMouseUp", function(self, button)
-                            if button == "RightButton" and self.taskID and self.taskID > 0 then
+                            if button == "RightButton" and self.taskID and self.taskID > 0 and not self.isCompleted then
                                 if self.isTracked then
                                     pcall(C_NeighborhoodInitiative.RemoveTrackedInitiativeTask, self.taskID)
                                 else
@@ -133,16 +142,45 @@ function addon.UpdateDisplay()
                     -- Populate data
                     box.taskID = task.ID
                     box.isTracked = task.tracked
+                    box.isCompleted = task.completed
                     local taskName = task.taskName
                     if task.timesCompleted and task.timesCompleted > 0 then
                         taskName = taskName .. " |cff888888(Completed x" .. task.timesCompleted .. ")|r"
                     end
                     box.taskName:SetText(taskName)
 
-                    if box.isTracked then
-                        box.trackedTexture:Show()
+                    if box.isCompleted then
+                        box.trackedPip:SetAtlas("housing-dashboard-fillbar-pip-incomplete")
+                        box.trackedPip:SetVertexColor(0.5, 0.5, 0.5, 1) -- Grey tint
+                        box:SetBackdropBorderColor(0.5, 0.5, 0.5, 0.5) -- Grey
                     else
-                        box.trackedTexture:Hide()
+                        box.trackedPip:SetVertexColor(1, 1, 1, 1) -- Remove tint
+                        if box.isTracked then
+                            box.trackedPip:SetAtlas("housing-dashboard-fillbar-pip-complete")
+                            box:SetBackdropBorderColor(1, 0.84, 0, 1) -- Gold
+                        else
+                            box.trackedPip:SetAtlas("housing-dashboard-fillbar-pip-incomplete")
+                            box:SetBackdropBorderColor(0.5, 0.5, 0.5, 0.5) -- Grey
+                        end
+                    end
+
+                    if task.rewardQuestID and task.rewardQuestID > 0 then
+                        local currencies = C_QuestLog.GetQuestRewardCurrencies(task.rewardQuestID)
+                        if currencies and #currencies > 0 and currencies[1] then
+                            local reward = currencies[1]
+                            box.rewardIcon:SetTexture(reward.texture)
+                            box.rewardText:SetText(reward.totalRewardAmount)
+                            box.rewardText:SetPoint("RIGHT", box.contributionBanner, "LEFT", -5, 0)
+                            box.rewardIcon:SetPoint("RIGHT", box.rewardText, "LEFT", -2, 0)
+                            box.rewardIcon:Show()
+                            box.rewardText:Show()
+                        else
+                            box.rewardIcon:Hide()
+                            box.rewardText:Hide()
+                        end
+                    else
+                        box.rewardIcon:Hide()
+                        box.rewardText:Hide()
                     end
                     
                     local reqText = {}
@@ -158,31 +196,27 @@ function addon.UpdateDisplay()
                     if task.completed then
                         box.status:SetText("|cff00ff00Completed|r")
                     elseif task.inProgress then
-                        box.status:SetText("|cffffff00In Progress|r")
+                        box.status:SetText("")
                     else
                         box.status:SetText("")
                     end
                     
-                    box.contribution:SetText("Contribution: " .. task.progressContributionAmount)
+                    box.contribution:SetText(task.progressContributionAmount)
 
-                    -- Calculate height and position
-                    local reqHeight = box.requirements:GetStringHeight()
-                    local nameHeight = box.taskName:GetStringHeight()
-                    local statusHeight = box.status:GetStringHeight()
-                    local contributionHeight = box.contribution:GetStringHeight()
-                    local bottomLineHeight = math.max(statusHeight, contributionHeight)
-                    local requiredHeight = nameHeight + reqHeight + bottomLineHeight + 20 -- Padding
-                    box:SetHeight(requiredHeight)
+                    -- Set fixed height and position
+                    local fixedHeight = 64
+                    box:SetHeight(fixedHeight)
+                    box.contributionBanner:SetSize(64, fixedHeight + 8)
 
                     if i == 1 then
-                        box:SetPoint("TOPLEFT", 0, 0)
+                        box:SetPoint("TOPLEFT", 0, -10) -- Add padding
                     else
                         box:SetPoint("TOP", lastBox, "BOTTOM", 0, -boxSpacing)
                     end
                     
                     box:Show()
                     lastBox = box
-                    totalHeight = totalHeight + requiredHeight + boxSpacing
+                    totalHeight = totalHeight + fixedHeight + boxSpacing
                 end
                 
                 if #initiativeInfo.tasks > 0 then

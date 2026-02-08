@@ -19,6 +19,12 @@ function addon.UI.CreateFrames()
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame:SetPropagateKeyboardInput(true)
+    frame:SetScript("OnKeyDown", function(self, key)
+        if key == "ESCAPE" then
+            self:Hide()
+        end
+    end)
     frame:SetClampedToScreen(true)
     frame:SetToplevel(true)
     frame:SetScript("OnShow", function(self) table.insert(UIPanelWindows, self) end)

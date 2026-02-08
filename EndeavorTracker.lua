@@ -4,6 +4,12 @@ EndeavorTracker = {}
 local addon = EndeavorTracker
 
 local taskBoxes = {}
+addon.searchFilter = ""
+
+function addon.FilterTasks(text)
+    addon.searchFilter = text or ""
+    addon.UpdateDisplay()
+end
 
 -- Helper function to format a table into a string
 local function FormatTableForDebug(tbl)
@@ -62,13 +68,24 @@ function addon.UpdateDisplay()
             end
 
             if initiativeInfo.tasks then
-                table.sort(initiativeInfo.tasks, addon.Sort.sortFunctions[addon.Sort.currentSort])
+                local filteredTasks = {}
+                if addon.searchFilter and addon.searchFilter ~= "" then
+                    for _, task in ipairs(initiativeInfo.tasks) do
+                        if task.taskName and string.find(string.lower(task.taskName), string.lower(addon.searchFilter), 1, true) then
+                            table.insert(filteredTasks, task)
+                        end
+                    end
+                else
+                    filteredTasks = initiativeInfo.tasks
+                end
+
+                table.sort(filteredTasks, addon.Sort.sortFunctions[addon.Sort.currentSort])
                 
                 local lastBox = nil
                 local totalHeight = 0
                 local boxSpacing = 10
 
-                for i, task in ipairs(initiativeInfo.tasks) do
+                for i, task in ipairs(filteredTasks) do
                     local box = taskBoxes[i]
                     if not box then
                         box = CreateFrame("Frame", nil, addon.UI.taskScrollChild, "BackdropTemplate")
@@ -219,7 +236,7 @@ function addon.UpdateDisplay()
                     totalHeight = totalHeight + fixedHeight + boxSpacing
                 end
                 
-                if #initiativeInfo.tasks > 0 then
+                if #filteredTasks > 0 then
                     totalHeight = totalHeight - boxSpacing
                 end
                 addon.UI.taskScrollChild:SetHeight(totalHeight)

@@ -73,6 +73,21 @@ function addon.UI.CreateFrames()
     taskListTitle:SetPoint("TOP", addon.UI.contributionText, "BOTTOM", 0, -10)
     taskListTitle:SetText("Task List")
 
+    -- Add search box
+    local searchBox = CreateFrame("EditBox", "EndeavorTrackerSearchBox", frame, "InputBoxTemplate")
+    searchBox:SetSize(150, 32)
+    searchBox:SetPoint("TOPLEFT", 30, -135)
+    searchBox:SetTextInsets(5, 5, 5, 5)
+    searchBox:SetFontObject("GameFontNormal")
+    searchBox:SetAutoFocus(false)
+    searchBox:SetScript("OnTextChanged", function(self)
+        addon.FilterTasks(self:GetText())
+    end)
+    searchBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+    end)
+    addon.UI.searchBox = searchBox
+
     -- Create sorting dropdown
     local sortDropdown = CreateFrame("Frame", "EndeavorTrackerSortDropdown", frame, "UIDropDownMenuTemplate")
     sortDropdown:SetPoint("TOPRIGHT", -30, -135)
